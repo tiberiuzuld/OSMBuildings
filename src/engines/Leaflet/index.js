@@ -6,11 +6,31 @@ L.OSMBuildings = function(options) {
 
 L.OSMBuildings.prototype = {
   addTo: function(map) {
-    debugger
+    var osmb = this.osmb;
 
+    osmb.container = map._mapPane;
+    // osmb.container.classList.add('osmb-container');
 
-    MAP.container, MAP.width, MAP.height, APP.highQuality
-    this.osmb.addTo(map._mapPane);
+    osmb.width = map._size.x;
+    osmb.height = map._size.y;
+
+    GL = GLX.createCanvas(osmb.container, osmb.width, osmb.height, osmb.highQuality);
+
+    Events.init();
+
+    osmb.getStateFromUrl();
+    // if (options.state) {
+    //    osmb.setStateToUrl();
+    //    osmb.on('change', osmb.setStateToUrl);
+    // }
+
+    // osmb.attributionContainer = document.createElement('DIV');
+    // osmb.attributionContainer.className = 'osmb-attribution';
+    // osmb.container.appendChild(osmb.attributionContainer);
+    // osmb.updateAttribution();
+    //
+    // osmb.setDate(new Date());
+    render.start();
   }
 };
 
