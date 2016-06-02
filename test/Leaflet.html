@@ -46,27 +46,13 @@
     attribution: '© 3D <a href="https://osmbuildings.org/copyright/">OSM Buildings</a>'
   }).addTo(map);
 
-//  L.control.layers({}, { Buildings: osmb }).addTo(map);
-
-//  osmb.addMapTiles();
+  L.control.layers({}, { Buildings: osmb }).addTo(map);
 
   osmb.addGeoJSONTiles(
     'https://{s}.data.osmbuildings.org/0.2/anonymous/tile/{z}/{x}/{y}.json',
     {
       fixedZoom: 15
     });
-
-//  map.on('pointermove', function(e) {
-//    osmb.getTarget(e.detail.x, e.detail.y, function(id) {
-//      if (id) {
-//        document.body.style.cursor = 'pointer';
-//        osmb.highlight(id, '#f08000');
-//      } else {
-//        document.body.style.cursor = 'default';
-//        osmb.highlight(null);
-//      }
-//   });
-//  });
 </script>
 </body>
 </html>

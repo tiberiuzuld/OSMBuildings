@@ -1,68 +1,12 @@
-/***
-L.ImageOverlay = L.Class.extend({
-
-  _initImage: function () {
-    this._image = L.DomUtil.create('img', 'leaflet-image-layer');
-
-    if (this._map.options.zoomAnimation && L.Browser.any3d) {
-      L.DomUtil.addClass(this._image, 'leaflet-zoom-animated');
-    } else {
-      L.DomUtil.addClass(this._image, 'leaflet-zoom-hide');
-    }
-
-    this._updateOpacity();
-
-    //TODO createImage util method to remove duplication
-    L.extend(this._image, {
-      galleryimg: 'no',
-      onselectstart: L.Util.falseFn,
-      onmousemove: L.Util.falseFn,
-      onload: L.bind(this._onImageLoad, this)
-    });
-  },
-
-  _animateZoom: function (e) {
-    var map = this._map,
-      image = this._image,
-      scale = map.getZoomScale(e.zoom),
-
-      topLeft = map._latLngToNewLayerPoint(nw, e.zoom, e.center),
-      size = map._latLngToNewLayerPoint(se, e.zoom, e.center)._subtract(topLeft),
-      origin = topLeft._add(size._multiplyBy((1 / 2) * (1 - 1 / scale)));
-
-    image.style[L.DomUtil.TRANSFORM] =
-      L.DomUtil.getTranslateString(origin) + ' scale(' + scale + ') ';
-  },
-
-  _reset: function () {
-    var image   = this._image;
-
-    L.DomUtil.setPosition(image, topLeft);
-
-    image.style.width  = size.x + 'px';
-    image.style.height = size.y + 'px';
-  },
-
-  _onImageLoad: function () {
-    this.fire('load');
-  },
-
-  _updateOpacity: function () {
-    L.DomUtil.setOpacity(this._image, this.options.opacity);
-  }
-});
-
-
-***/
 
 L.OSMBuildings = L.Class.extend({
   includes: [L.Mixin.Events, OSMBuildings.prototype],
 
   options: {
-    opacity: 1
+    opacity: 0.8
   },
 
-  initialize: function (options) { // (String, LatLngBounds, Object)
+  initialize: function (options) {
     L.setOptions(this, options);
     this._osmb = new OSMBuildings(options);
   },
@@ -71,22 +15,34 @@ L.OSMBuildings = L.Class.extend({
     this._map = map;
     this._osmb.appendTo(map._panes.overlayPane, map._size.x, map._size.y);
 
-    // map.on('viewreset', this._reset, this);
-
-    if (map.options.zoomAnimation && L.Browser.any3d) {
-    //   map.on('zoomanim', this._animateZoom, this);
+    if (this._map.options.zoomAnimation && L.Browser.any3d) {
+      L.DomUtil.addClass(this._osmb.container, 'leaflet-zoom-animated');
+    } else {
+      L.DomUtil.addClass(this._osmb.container, 'leaflet-zoom-hide');
     }
 
-    // this._reset();
+    this._updateOpacity();
+
+    map.on('viewreset', this._reset, this);
+    map.on('move', this._move, this);
+    map.on('zoom', this._zoom, this);
+
+    if (map.options.zoomAnimation && L.Browser.any3d) {
+      map.on('zoomanim', this._animateZoom, this);
+    }
+
+    this._reset();
   },
 
   onRemove: function (map) {
-    // map.getPanes().overlayPane.removeChild(this._osmb);
+    map.getPanes().overlayPane.removeChild(this._osmb.container);
 
-    // map.off('viewreset', this._reset, this);
+    map.off('viewreset', this._reset, this);
+    map.off('move', this._move, this);
+    map.off('zoom', this._zoom, this);
 
     if (map.options.zoomAnimation) {
-      // map.off('zoomanim', this._animateZoom, this);
+      map.off('zoomanim', this._animateZoom, this);
     }
   },
 
@@ -97,38 +53,73 @@ L.OSMBuildings = L.Class.extend({
 
   setOpacity: function (opacity) {
     this.options.opacity = opacity;
-    // this._updateOpacity();
+    this._updateOpacity();
     return this;
   },
 
   bringToFront: function () {
-    // if (this._image) {
-    //   this._map._panes.overlayPane.appendChild(this._image);
-    // }
+    if (this._osmb.container) {
+      this._map._panes.overlayPane.appendChild(this._osmb.container);
+    }
     return this;
   },
 
   bringToBack: function () {
     var pane = this._map._panes.overlayPane;
-    // if (this._image) {
-    //   pane.insertBefore(this._image, pane.firstChild);
-    // }
+    if (this._osmb.container) {
+      pane.insertBefore(this._osmb.container, pane.firstChild);
+    }
     return this;
   },
 
   getAttribution: function () {
     return this.options.attribution;
+  },
+
+  _animateZoom: function (e) {
+    // var map = this._map,
+    //   image = this._osmb.container,
+    //   scale = map.getZoomScale(e.zoom),
+    //
+    //   topLeft = map._latLngToNewLayerPoint(nw, e.zoom, e.center),
+    //   size = map._latLngToNewLayerPoint(se, e.zoom, e.center)._subtract(topLeft),
+    //   origin = topLeft._add(size._multiplyBy((1 / 2) * (1 - 1 / scale)));
+    //
+    // image.style[L.DomUtil.TRANSFORM] = L.DomUtil.getTranslateString(origin) + ' scale(' + scale + ') ';
+  },
+
+  _reset: function () {
+    // L.DomUtil.setPosition(this._osmb.container, [0, 0]);
+    // this._osmb.container.style.width  = size.x + 'px';
+    // this._osmb.container.style.height = size.y + 'px';
+  },
+
+  _updateOpacity: function () {
+    L.DomUtil.setOpacity(this._osmb.container, this.options.opacity);
+  },
+
+  _move: function(e) {
+    var pos = this._map.getCenter();
+    this._osmb.setPosition({
+      latitude:pos.lat,
+      longitude:pos.lng
+    });
+
+    // var off = this.getOffset();
+    // moveCam({ x:this.offset.x-off.x, y:this.offset.y-off.y });
+  },
+
+  _zoom: function(e) {
+    this._osmb.setZoom(this._map.getZoom());
+    // var off = this.getOffset();
+    // moveCam({ x:this.offset.x-off.x, y:this.offset.y-off.y });
   }
-  
+
 });
 
 L.osmBuildings = function (options) {
   return new L.OSMBuildings(options);
 };
-
-
-
-
 
 
 
@@ -152,18 +143,12 @@ L.osmBuildings = function (options) {
     click:     this.onClick
   }, this);
 
-  if (map.options.zoomAnimation) {
-    map.on('zoomanim', this.onZoom, this);
-  }
-
   if (map.attributionControl) {
     map.attributionControl.addAttribution(ATTRIBUTION);
   }
 
-  Data.update();
 
 
-/***
 this.offset = { x:0, y:0 };
 
 L.OSMBuildings.prototype.onRemove = function() {
@@ -187,11 +172,6 @@ L.OSMBuildings.prototype.onRemove = function() {
   }
   Layers.remove();
   map = null;
-};
-
-L.OSMBuildings.prototype.onMove = function(e) {
-  var off = this.getOffset();
-  moveCam({ x:this.offset.x-off.x, y:this.offset.y-off.y });
 };
 
 L.OSMBuildings.prototype.onMoveEnd = function(e) {
@@ -248,13 +228,6 @@ L.OSMBuildings.prototype.onViewReset = function() {
   this.offset = off;
   Layers.setPosition(-off.x, -off.y);
   moveCam({ x:0, y:0 });
-};
-
-L.OSMBuildings.prototype.onClick = function(e) {
-  var id = HitAreas.getIdFromXY(e.containerPoint.x, e.containerPoint.y);
-  if (id) {
-    onClick({ feature:id, lat:e.latlng.lat, lon:e.latlng.lng });
-  }
 };
 
 L.OSMBuildings.prototype.getOffset = function() {
