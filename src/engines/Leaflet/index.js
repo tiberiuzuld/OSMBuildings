@@ -25,13 +25,14 @@ L.OSMBuildings = L.Class.extend({
 
     map.on('viewreset', this._reset, this);
     map.on('move', this._move, this);
-    map.on('zoom', this._zoom, this);
 
     if (map.options.zoomAnimation && L.Browser.any3d) {
       map.on('zoomanim', this._animateZoom, this);
     }
 
-    this._reset();
+    this._move();
+    this._zoom();
+//  this._reset();
   },
 
   onRemove: function (map) {
@@ -39,7 +40,6 @@ L.OSMBuildings = L.Class.extend({
 
     map.off('viewreset', this._reset, this);
     map.off('move', this._move, this);
-    map.off('zoom', this._zoom, this);
 
     if (map.options.zoomAnimation) {
       map.off('zoomanim', this._animateZoom, this);
