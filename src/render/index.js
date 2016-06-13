@@ -161,7 +161,7 @@ var render = {
   
   onChange: function() {
     var
-      scale = 1.38*Math.pow(2, APP.zoom-17),
+      scale = 1.3567 * Math.pow(2, APP.zoom-17),
       width = APP.width,
       height = APP.height,
       refHeight = 1024,
@@ -172,6 +172,7 @@ var render = {
     this.viewMatrix = new GLX.Matrix()
       .rotateZ(APP.rotation)
       .rotateX(APP.tilt)
+      .translate(0, 8/scale, 0) // corrective offset to match Leaflet's coordinate system (value was determined empirically)
       .translate(0, 0, -1220/scale); //move away to simulate zoom; -1220 scales APP tiles to ~256px
 
     this.viewDirOnMap = [ Math.sin(APP.rotation / 180* Math.PI),
