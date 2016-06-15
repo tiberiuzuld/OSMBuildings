@@ -113,12 +113,12 @@ L.OSMBuildings = L.Class.extend({
   },
 
   _zoomStep: function() {
-    var map = this._map;
-
-    var sizeX = map._size.x;
-    var offX = -2 * map._panes.tilePane.firstChild.children[1].getBoundingClientRect().right;
-    var scale = (sizeX + offX) / sizeX;
-    var zoom = map._zoom;
+    var
+      map = this._map,
+      sizeX = map._size.x,
+      offX = -2 * map._panes.tilePane.firstChild.children[1].getBoundingClientRect().right,
+      scale = (sizeX + offX) / sizeX,
+      zoom = map._zoom;
 
     if (this._zoomScale === 0.5) {
       zoom += 2 * (scale-1);
@@ -126,11 +126,8 @@ L.OSMBuildings = L.Class.extend({
       zoom += scale-1;
     }
 
-    // console.log(zoom)
     this._osmb.setZoom(zoom);
-    // this._move();
-
-    this._zooming = setTimeout(this._zoomStep.bind(this), 2);
+    this._zooming = setTimeout(this._zoomStep.bind(this), 10);
   }
 
 });
