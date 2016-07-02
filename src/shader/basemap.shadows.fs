@@ -79,5 +79,5 @@ void main() {
 
   float darkness = (1.0 - diffuse);
   darkness *=  (1.0 - fogIntensity);
-  gl_FragColor = vec4(vec3(1.0 - darkness), 1.0);
+  gl_FragColor = vec4(vec3(0.0), darkness);
 }

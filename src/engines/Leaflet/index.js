@@ -3,7 +3,7 @@ L.OSMBuildings = L.Class.extend({
   includes: [L.Mixin.Events, OSMBuildings.prototype],
 
   options: {
-    opacity: 0.8
+    opacity: 1.0
   },
 
   initialize: function (options) {

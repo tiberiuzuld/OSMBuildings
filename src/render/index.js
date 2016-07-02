@@ -94,12 +94,13 @@ var render = {
         GL.blendFuncSeparate(GL.ZERO, GL.SRC_COLOR, GL.ZERO, GL.ONE);
         render.Overlay.render(render.blurredOutlineMap.framebuffer.renderTexture, viewSize);
       }
-
+      /*
+      //FIXME: don't attempt to render the sky in leaflet mode, it won't be visible anyway
       GL.blendFuncSeparate(GL.ONE_MINUS_DST_ALPHA, GL.DST_ALPHA, GL.ONE, GL.ONE);
       GL.disable(GL.DEPTH_TEST);
       render.sky.render();
       GL.disable(GL.BLEND);
-      GL.enable(GL.DEPTH_TEST);
+      GL.enable(GL.DEPTH_TEST);*/
     } else {
       render.cameraGBuffer.render(this.viewMatrix, this.projMatrix, viewSize, true);
       render.sunGBuffer.render(Sun.viewMatrix, Sun.projMatrix);
@@ -118,6 +119,8 @@ var render = {
         render.blurredOutlineMap.render(render.OutlineMap.framebuffer.renderTexture, viewSize);
       }
 
+      render.MapShadows.render(Sun, render.sunGBuffer.framebuffer, 0.5);
+
       GL.enable(GL.BLEND);
       {
         // multiply DEST_COLOR by SRC_COLOR, keep SRC alpha
@@ -129,7 +132,6 @@ var render = {
           render.Overlay.render(render.blurredOutlineMap.framebuffer.renderTexture, viewSize);
         }
 
-        render.MapShadows.render(Sun, render.sunGBuffer.framebuffer, 0.5);
         render.Overlay.render( render.blurredAmbientMap.framebuffer.renderTexture, viewSize);
 
         // linear interpolation between the colors of the current framebuffer 
@@ -139,10 +141,11 @@ var render = {
         // to ensure that the alpha channel will become 1.0 for each pixel after this
         // operation, and thus the whole canvas is not rendered partially transparently
         // over its background.
-        GL.blendFuncSeparate(GL.ONE_MINUS_DST_ALPHA, GL.DST_ALPHA, GL.ONE, GL.ONE);
-        GL.disable(GL.DEPTH_TEST);
-        render.sky.render();
-        GL.enable(GL.DEPTH_TEST);
+        //FIXME: don't attempt to render sky in leaflet mode, it won't be visible anyway
+        //GL.blendFuncSeparate(GL.ONE_MINUS_DST_ALPHA, GL.DST_ALPHA, GL.ONE, GL.ONE);
+        //GL.disable(GL.DEPTH_TEST);
+        //render.sky.render();
+        //GL.enable(GL.DEPTH_TEST);
       }
       GL.disable(GL.BLEND);
 
