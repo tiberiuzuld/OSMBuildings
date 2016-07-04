@@ -58,7 +58,10 @@ var render = {
     requestAnimationFrame( this.renderFrame.bind(this));
 
     this.onChange();    
-    GL.clearColor(this.fogColor[0], this.fogColor[1], this.fogColor[2], 0.0);
+
+    GL.clearColor(this.fogColor[0], this.fogColor[1], this.fogColor[2],
+      render.effects.leafletTransparency ? 0.0 : 1.0);
+
     GL.clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT);
 
     if (APP.zoom < APP.minZoom || APP.zoom > APP.maxZoom) {
@@ -77,7 +80,9 @@ var render = {
 
     if (!render.effects.shadows) {
       render.Buildings.render();
-      render.Basemap.render();
+      if (!render.effects.leafletTransparency) {
+        render.Basemap.render();
+      }
 
       if (render.effects.outlines) {
         render.cameraGBuffer.render(this.viewMatrix, this.projMatrix, viewSize, true);
@@ -94,13 +99,18 @@ var render = {
         GL.blendFuncSeparate(GL.ZERO, GL.SRC_COLOR, GL.ZERO, GL.ONE);
         render.Overlay.render(render.blurredOutlineMap.framebuffer.renderTexture, viewSize);
       }
-      /*
-      //FIXME: don't attempt to render the sky in leaflet mode, it won't be visible anyway
-      GL.blendFuncSeparate(GL.ONE_MINUS_DST_ALPHA, GL.DST_ALPHA, GL.ONE, GL.ONE);
-      GL.disable(GL.DEPTH_TEST);
-      render.sky.render();
+
+      if (!render.effects.leafletTransparency)
+      {
+        // Don't attempt to render the sky in leaflet mode. It won't be visible anyway
+        // (since Leaflet mode always renders a top-down view), but would destroy our
+        // transparency information that's needed for compositing with leaflet.
+        GL.blendFuncSeparate(GL.ONE_MINUS_DST_ALPHA, GL.DST_ALPHA, GL.ONE, GL.ONE);
+        GL.disable(GL.DEPTH_TEST);
+        render.sky.render();
+        GL.enable(GL.DEPTH_TEST);
+      }
       GL.disable(GL.BLEND);
-      GL.enable(GL.DEPTH_TEST);*/
     } else {
       render.cameraGBuffer.render(this.viewMatrix, this.projMatrix, viewSize, true);
       render.sunGBuffer.render(Sun.viewMatrix, Sun.projMatrix);
@@ -119,7 +129,18 @@ var render = {
         render.blurredOutlineMap.render(render.OutlineMap.framebuffer.renderTexture, viewSize);
       }
 
-      render.MapShadows.render(Sun, render.sunGBuffer.framebuffer, 0.5);
+      // Shadows have to be added to the map differently depending on how OSMBuildings is used
+      // - normally, our output needs to be a fully opaque image, so the shadows need to
+      //   be alpha-multiplied with the basemap layer
+      // - in leaflet mode, our output is an overlay over Leaflet. So shadow pixels should
+      //   be fully black with high transparent, in order to darken the underlying leaflet
+      //   pixels without obscuring them
+      // So map shadows have to be rendered black-with-alpha-darkness and without blending
+      // for Leaflet, but darkness-as-rgb-brightness-with-full-alpha otherwise
+      if (render.effects.leafletTransparency)
+      {
+        render.MapShadows.render(Sun, render.sunGBuffer.framebuffer, 0.5, true);
+      }
 
       GL.enable(GL.BLEND);
       {
@@ -132,6 +153,10 @@ var render = {
           render.Overlay.render(render.blurredOutlineMap.framebuffer.renderTexture, viewSize);
         }
 
+        if (!render.effects.leafletTransparency) {
+          render.MapShadows.render(Sun, render.sunGBuffer.framebuffer, 0.5, false);
+        }
+
         render.Overlay.render( render.blurredAmbientMap.framebuffer.renderTexture, viewSize);
 
         // linear interpolation between the colors of the current framebuffer 
@@ -141,11 +166,15 @@ var render = {
         // to ensure that the alpha channel will become 1.0 for each pixel after this
         // operation, and thus the whole canvas is not rendered partially transparently
         // over its background.
-        //FIXME: don't attempt to render sky in leaflet mode, it won't be visible anyway
-        //GL.blendFuncSeparate(GL.ONE_MINUS_DST_ALPHA, GL.DST_ALPHA, GL.ONE, GL.ONE);
-        //GL.disable(GL.DEPTH_TEST);
-        //render.sky.render();
-        //GL.enable(GL.DEPTH_TEST);
+        if (!render.effects.leafletTransparency) {
+          // Don't attempt to render the sky in leaflet mode. It won't be visible anyway
+          // (since Leaflet mode always renders a top-down view), but would destroy our
+          // transparency information that's needed for compositing with leaflet.
+          GL.blendFuncSeparate(GL.ONE_MINUS_DST_ALPHA, GL.DST_ALPHA, GL.ONE, GL.ONE);
+          GL.disable(GL.DEPTH_TEST);
+          render.sky.render();
+          GL.enable(GL.DEPTH_TEST);
+        }
       }
       GL.disable(GL.BLEND);
 

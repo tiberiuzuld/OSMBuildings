@@ -23,6 +23,7 @@ render.MapShadows = {
         'uShadowTexDimensions', 
         'uShadowStrength',
         'uShadowTexIndex',
+        'uTransparentShadows',
         'uSunMatrix',
       ]
     });
@@ -30,7 +31,7 @@ render.MapShadows = {
     this.mapPlane = new mesh.MapPlane();
   },
 
-  render: function(Sun, depthFramebuffer, shadowStrength) {
+  render: function(Sun, depthFramebuffer, shadowStrength, transparentShadows) {
     var shader = this.shader;
     shader.enable();
 
@@ -45,7 +46,8 @@ render.MapShadows = {
       ['uFogDistance', '1f', render.fogDistance],
       ['uFogBlurDistance', '1f', render.fogBlurDistance],
       ['uShadowTexDimensions', '2fv', [depthFramebuffer.width, depthFramebuffer.height] ],
-      ['uShadowStrength', '1f', shadowStrength]
+      ['uShadowStrength', '1f', shadowStrength],
+      ['uTransparentShadows', '1i', transparentShadows ? 1 : 0]
     ]);
 
     shader.bindTexture('uShadowTexIndex', 0, depthFramebuffer.depthTexture);

@@ -25,6 +25,7 @@ uniform vec3 uFogColor;
 uniform vec3 uDirToSun;
 uniform vec2 uShadowTexDimensions;
 uniform float uShadowStrength;
+uniform int uTransparentShadows;
 
 
 varying vec2 vTexCoord;
@@ -73,11 +74,13 @@ void main() {
   }
 
   diffuse = mix(1.0, diffuse, shadowStrength);
-  
+
   float fogIntensity = (verticalDistanceToLowerEdge - uFogDistance) / uFogBlurDistance;
   fogIntensity = clamp(fogIntensity, 0.0, 1.0);
 
   float darkness = (1.0 - diffuse);
   darkness *=  (1.0 - fogIntensity);
-  gl_FragColor = vec4(vec3(0.0), darkness);
+  gl_FragColor = (uTransparentShadows != 0)
+    ? vec4(vec3(0.0), darkness)
+    : vec4(vec3(1.0 - darkness), 1.0);
 }
