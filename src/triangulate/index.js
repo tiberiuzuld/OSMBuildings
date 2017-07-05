@@ -147,12 +147,12 @@ var triangulate = (function() {
   function varyColor(color, variance) {
     variance = variance || 0;
     var
-      color = Color.parse(color),
+      color2 = Color.parse(color),
       rgb;
-    if (!color) {
+    if (!color2) {
       rgb = DEFAULT_COLOR;
     } else {
-      rgb = color.toArray();
+      rgb = color2.toArray();
     }
     return [rgb[0]+variance, rgb[1]+variance, rgb[2]+variance];
   }

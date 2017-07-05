@@ -160,6 +160,9 @@ function hue2rgb(p, q, t) {
 }
 
 function clamp(v, max) {
+  if (v === undefined) {
+    return;
+  }
   return Math.min(max, Math.max(0, v || 0));
 }
 
@@ -170,7 +173,7 @@ var Color = function(r, g, b, a) {
   this.r = clamp(r, 1);
   this.g = clamp(g, 1);
   this.b = clamp(b, 1);
-  this.a = (a !== undefined ? clamp(a, 1) : 1);
+  this.a = clamp(a, 1) || 1;
 };
 
 /**
@@ -196,6 +199,8 @@ Color.parse = function(str) {
       );
     }
   }
+
+  return new Color();
 };
 
 Color.fromHSL = function(h, s, l, a) {
@@ -258,7 +263,7 @@ Color.prototype = {
 
   toString: function() {
     if (this.r === undefined || this.g === undefined || this.b === undefined) {
-      return '';
+      return;
     }
 
     if (this.a === 1) {
@@ -305,7 +310,7 @@ Color.prototype = {
     return new Color(this.r, this.g, this.b, this.a*a);
   },
 
-  copy: function(l) {
+  copy: function() {
     return new Color(this.r, this.g, this.b, this.a);
   }
 
@@ -3015,11 +3020,15 @@ var triangulate = (function() {
 
   function varyColor(color, variance) {
     variance = variance || 0;
-    var c = Color.parse(color).toArray();
-    if (c === undefined) {
-      c = DEFAULT_COLOR;
+    var
+      color2 = Color.parse(color),
+      rgb;
+    if (!color2) {
+      rgb = DEFAULT_COLOR;
+    } else {
+      rgb = color2.toArray();
     }
-    return [c[0]+variance, c[1]+variance, c[2]+variance];
+    return [rgb[0]+variance, rgb[1]+variance, rgb[2]+variance];
   }
 
   //***************************************************************************
